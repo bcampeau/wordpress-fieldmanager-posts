@@ -1,0 +1,9 @@
+This plugin builds on the wordpress-fieldmanager framework to offer automatic related post matching for post-enabled fields
+
+Authors:
+
+* Brad Campeau-Laurion, Chief Technologist, Alley Interactive LLC
+
+Open Source components consulted or used:
+
+* [11/15/12] Dependency on the wordpress-fieldmanager framework
