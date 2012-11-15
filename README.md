@@ -1,2 +1,2 @@
-wordpress-fieldmanager-posts
+wordpress-fieldmanager-terms
 ============================
