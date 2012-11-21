@@ -12,18 +12,39 @@ $( document ).ready( function () {
 			
 			// Get all the currently selected taxonomy terms in single taxonomy fields for use in finding related content
 			// This must be done using Javascript since terms may have changed in the interface before being committed to the database
+			// First check all fieldmanager taxonomy fields
 			$(".fm-options").each(function () {
 				// Only use option fields where a taxonomy is specified
-				//console.log("taxonomy:" + $(this).data("taxonomy"));
 				var fm_taxonomy = JSON.parse($(this).data("taxonomy"));
 				if( fm_taxonomy != undefined ) {
 					var fm_terms = new Array();
 					$("option:selected", this).each(function () {
-						//console.log("value:" + $(this).val());
 						fm_terms.push( $(this).val() );
 					});
 					if ( fm_terms.length > 0 ) fm_taxonomy_terms[$(this).data( "taxonomy" )] = fm_terms;
 				}
+			});
+			
+			// Next check all built-in WordPress fields
+			$(".categorychecklist input:checked").each(function () {
+				// Split the ID to get the taxonomy and field ID
+				var term_parts = $(this).attr('id').split("-");
+				
+				// See if the taxonomy array already exists
+				if ( $.isArray( fm_taxonomy_terms[term_parts[1]] ) == false ) fm_taxonomy_terms[term_parts[1]] = new Array();
+
+				// Add this term to the array if it doesn't already exist
+				if ( $.inArray( term_parts[2], fm_taxonomy_terms[term_parts[1]] ) == -1 ) fm_taxonomy_terms[term_parts[1]].push(term_parts[2]);
+			});
+			$(".tagchecklist span").each(function () {
+				// Strip the X
+				var tag = $(this).text().substr(2);
+			
+				// See if the taxonomy array already exists
+				if ( $.isArray( fm_taxonomy_terms['post_tag'] ) == false ) fm_taxonomy_terms['post_tag'] = new Array();
+
+				// Add this term to the array if it doesn't already exist
+				if ( $.inArray( tag, fm_taxonomy_terms['post_tag'] ) == -1 ) fm_taxonomy_terms['post_tag'].push(tag);
 			});
 		
 			//console.log(fm_taxonomy_terms);

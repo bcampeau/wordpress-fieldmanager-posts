@@ -51,19 +51,15 @@ class Fieldmanager_Posts {
 	public function ajax_find_related_posts() {
 		// Check the nonce before we do anything
 		check_ajax_referer( 'fm_posts_find_related_nonce', 'fm_posts_find_related_nonce' );
-		error_log("1\n");
+
 		// Create an array to hold the results.
 		$result = array();
-		error_log("2\n");
+
 		// Pass the post title and content to term extraction if one if them is not empty. 
 		// Otherwise return the empty array.
-		error_log("3\n");
 		if( !empty( $_POST['post_id'] ) && !empty( $_POST['post_terms'] ) ) {
-			error_log("4\n");
 			$result = $this->related_posts( $_POST['post_id'], $_POST['post_terms'] );
-			error_log("5\n");
 		}
-		error_log("6\n");
 		echo json_encode( $result );
 		
 		die();
@@ -76,28 +72,23 @@ class Fieldmanager_Posts {
 	 * @return void
 	 */
 	public function related_posts( $post_id, $post_terms ) {
-		error_log("a\n");		
 		// Holds the return values
 		$post_matches = array();
-		error_log("b\n");
+
 		// Convert terms to an object
 		$terms = json_decode( stripslashes( $post_terms ) );
-		error_log("c\n");
 		$related_post_results = array();
-		error_log("d\n");
+
 		// Query each taxonomy and term individually because we need to know how many matches occurred for each to rank the final list
-		error_log( print_r( get_object_vars( $terms ), true ) );
 		foreach( get_object_vars( $terms ) as $taxonomy => $terms ) {
-			error_log("e\n");
 			$tax_name = json_decode($taxonomy);
-			error_log("f\n");
 			foreach( $terms as $term_id ) {
 				$args = array(
 					'post__not_in' => array( $post_id ), // exclude the post we are trying to find related content for
 					'tax_query' => array(
 						array( 
 							'taxonomy' => $tax_name,
-							'field' => 'id',
+							'field' => ( is_numeric( $term_id ) ) ? "id" : "name",
 							'terms' => $term_id
 						)
 					),
@@ -106,9 +97,6 @@ class Fieldmanager_Posts {
 					'posts_per_page' => 50
 				);
 				$query = new WP_Query( $args );
-				
-				error_log( $taxonomy . ":" . $term_id );
-				error_log( print_r( $query->request, true ) );
 								
 				while( $query->have_posts() ) {
 					 $query->next_post();
@@ -123,7 +111,7 @@ class Fieldmanager_Posts {
 					 		'count' => 1,
 					 		'id' => $query->post->ID,
 					 		'post_type' => $post_type->labels->singular_name,
-					 		'post_date' => get_the_date( $query->post->ID ),
+					 		'post_date' => get_the_time( 'Y/m/d', $query->post->ID ),
 					 		'post_title' => get_the_title( $query->post->ID ), 
 					 		'permalink' => get_permalink( $query->post->ID )
 					 	);
@@ -138,7 +126,6 @@ class Fieldmanager_Posts {
 		} );
 		
 		// Return the slice of the array up to the max post limit
-		error_log( print_r( $related_post_results, true ) );
 		return array_slice( $related_post_results, 0, $this->maximum_links );			
 	}
 	
